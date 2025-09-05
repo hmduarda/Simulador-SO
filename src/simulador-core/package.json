@@ -1,0 +1,14 @@
+{
+  "name": "escalonador-js",
+  "version": "1.0.0",
+  "description": "A JavaScript project for process scheduling algorithms.",
+  "main": "src/main.js",
+  "scripts": {
+    "start": "node src/main.js",
+    "test": "echo \"No tests specified\" && exit 0"
+  },
+  "author": "Michelline",
+  "license": "MIT",
+  "dependencies": {},
+  "devDependencies": {}
+}
