@@ -16,6 +16,7 @@ export default function App() {
   const intervalRef = useRef(null);
   const filaRef = useRef([]);
   const quantumRestRef = useRef(0);
+  const processosIniciaisRef = useRef([]);
 
   function limparSimulacao() {
     if (intervalRef.current) clearInterval(intervalRef.current);
@@ -24,6 +25,7 @@ export default function App() {
     setRodando(false);
     filaRef.current = [];
     quantumRestRef.current = 0;
+    processosIniciaisRef.current = [];
   }
 
   function gerarProcessos() {
@@ -35,6 +37,7 @@ export default function App() {
       instrucoes: p.burstTime,
     }));
     setProcessos(adaptados);
+    processosIniciaisRef.current = adaptados; 
   }
 
   function executar() {
@@ -123,68 +126,79 @@ export default function App() {
     }, TICK_MS);
   }
 
+  function getProgress(id, restante) {
+    const inicial = processosIniciaisRef.current.find((p) => p.id === id)?.instrucoes || restante;
+    return ((inicial - restante) / inicial) * 100;
+  }
+
   return (
-    <div style={{ padding: "20px", fontFamily: "Arial", color: "#eaeaea", background: "#111", minHeight: "100vh" }}>
-      <h1 style={{ fontSize: 48, marginBottom: 16 }}>Simulador de Escalonamento</h1>
+    <div className="app-container">
+      <h1 className="title">SIMULADOR DE PROCESSOS</h1>
 
-      <label>Algoritmo: </label>
-      <select
-        value={algoritmo}
-        onChange={(e) => {
-          setAlgoritmo(e.target.value);
-          limparSimulacao();
-        }}
-        style={{ marginLeft: 8 }}
-      >
-        <option value="FCFS">FCFS</option>
-        <option value="SJF">SJF</option>
-        <option value="RR">Round Robin</option>
-      </select>
+      <div className="controls">
+        <label>Algoritmo:</label>
+        <select
+          value={algoritmo}
+          onChange={(e) => {
+            setAlgoritmo(e.target.value);
+            limparSimulacao();
+          }}
+        >
+          <option value="FCFS">FCFS</option>
+          <option value="SJF">SJF</option>
+          <option value="RR">Round Robin</option>
+        </select>
 
-      {algoritmo === "RR" && (
-        <span style={{ marginLeft: 16 }}>
-          <label>Quantum: </label>
-          <input
-            type="number"
-            value={quantum}
-            onChange={(e) => setQuantum(Number(e.target.value))}
-            min={1}
-            style={{ width: 60, marginLeft: 6 }}
-          />
-        </span>
-      )}
+        {algoritmo === "RR" && (
+          <div className="quantum">
+            <label>Quantum:</label>
+            <input
+              type="number"
+              value={quantum}
+              onChange={(e) => setQuantum(Number(e.target.value))}
+              min={1}
+            />
+          </div>
+        )}
+      </div>
 
-      <div style={{ marginTop: 20 }}>
-        <button onClick={gerarProcessos} disabled={rodando} style={{ padding: "10px 16px", marginRight: 12 }}>
+      <div className="buttons">
+        <button onClick={gerarProcessos} disabled={rodando}>
           Gerar Processos
         </button>
-        <button onClick={executar} disabled={rodando || processos.length === 0} style={{ padding: "10px 16px" }}>
+        <button onClick={executar} disabled={rodando || processos.length === 0}>
           Executar
         </button>
         {rodando && (
-          <button
-            onClick={limparSimulacao}
-            style={{ padding: "10px 16px", marginLeft: 12, background: "#333", color: "#fff", borderRadius: 6 }}
-          >
+          <button onClick={limparSimulacao} className="stop-btn">
             Parar
           </button>
         )}
       </div>
 
-      <h2 style={{ marginTop: 28 }}>Fila de Processos</h2>
-      <ul>
-        {processos.map((p) => (
-          <li key={p.id}>
-            Processo {p.id} — Instruções restantes: {p.instrucoes}
-          </li>
-        ))}
+      <h2 className="subtitle">Fila de Processos</h2>
+      <ul className="process-list">
+        {processos.map((p) => {
+          const progress = getProgress(p.id, p.instrucoes);
+          return (
+            <li key={p.id} className={executando?.id === p.id ? "executando" : ""}>
+              <div className="process-header">
+                <span>Processo {p.id}</span>
+                <span>{p.instrucoes} instruções restantes</span>
+              </div>
+              <div className="progress-bar">
+                <div className="progress" style={{ width: `${progress}%` }}></div>
+              </div>
+            </li>
+          );
+        })}
       </ul>
 
       {executando && (
-        <h3 style={{ color: "limegreen" }}>Executando processo {executando.id}…</h3>
+        <h3 className="running">Executando processo {executando.id}…</h3>
       )}
       {!rodando && processos.length > 0 && executando === null && (
-        <p style={{ color: "#aaa" }}><i>Pronto para executar.</i></p>
+        <p className="ready">Pronto para executar.</p>
       )}
     </div>
   );
